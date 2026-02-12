@@ -118,9 +118,14 @@ public class RecordVisitor
                 // using hashCode() for equality check).
                 // ArrayList ensures that ordering of subTypes is preserved.
                 final List<Schema> unionSchemas = new ArrayList<>();
+                // Set based on IdentityHashMap to track schemas by reference and prevent circular references
+                final Set<Schema> seenSchemas = Collections.newSetFromMap(new IdentityHashMap<>());
+                
                 // Initialize with this schema
                 if (_type.isConcrete()) {
-                    unionSchemas.add(_typeSchema);
+                    if (seenSchemas.add(_typeSchema)) {
+                        unionSchemas.add(_typeSchema);
+                    }
                 }
 
                 for (NamedType subType : subTypes) {
@@ -134,30 +139,23 @@ public class RecordVisitor
                     Schema subTypeSchema = visitor.getAvroSchema();
                     // When subType schema is union itself, include each its type into this union if not there already
                     if (subTypeSchema.getType() == Type.UNION) {
-                        unionSchemas.addAll(subTypeSchema.getTypes());
+                        for (Schema s : subTypeSchema.getTypes()) {
+                            if (seenSchemas.add(s)) {
+                                unionSchemas.add(s);
+                            }
+                        }
                     } else {
-                        unionSchemas.add(subTypeSchema);
+                        if (seenSchemas.add(subTypeSchema)) {
+                            unionSchemas.add(subTypeSchema);
+                        }
                     }
                 }
-                _avroSchema = Schema.createUnion(deduplicateByReference(unionSchemas));
+                _avroSchema = Schema.createUnion(unionSchemas);
             } else {
                 _avroSchema = _typeSchema;
             }
         }
         _visitorWrapper.getSchemas().addSchema(type, _avroSchema);
-    }
-
-    private static List<Schema> deduplicateByReference(List<Schema> schemas) {
-        final List<Schema> result = new ArrayList<>();
-        // Set based on IdentityHashMap is used because we need to deduplicate by reference.
-        final Set<Schema> seenSchemas = Collections.newSetFromMap(new IdentityHashMap<>());
-
-        for(Schema s : schemas) {
-            if(seenSchemas.add(s)) {
-                result.add(s);             // preserve order
-            }
-        }
-        return result;
     }
 
     @Override
