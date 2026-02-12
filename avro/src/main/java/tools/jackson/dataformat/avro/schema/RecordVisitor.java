@@ -122,6 +122,8 @@ public class RecordVisitor
                 // When base class is explicitly listed in @JsonSubTypes or @Union annotations, or when
                 // flattening nested unions, we need to deduplicate schemas by reference (not by equals/hashCode)
                 // to avoid StackOverflowError from circular references in Schema objects.
+                // Reference equality (==) avoids triggering Schema.equals()/hashCode() which may traverse
+                // circular structures and cause infinite recursion.
                 final Set<Schema> seenSchemas = Collections.newSetFromMap(new IdentityHashMap<>());
                 
                 // Initialize with this schema
