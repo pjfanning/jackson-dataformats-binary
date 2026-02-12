@@ -118,7 +118,10 @@ public class RecordVisitor
                 // using hashCode() for equality check).
                 // ArrayList ensures that ordering of subTypes is preserved.
                 final List<Schema> unionSchemas = new ArrayList<>();
-                // Set based on IdentityHashMap to track schemas by reference and prevent circular references
+                // Set based on IdentityHashMap to track schemas by reference and prevent circular references.
+                // When base class is explicitly listed in @JsonSubTypes or @Union annotations, or when
+                // flattening nested unions, we need to deduplicate schemas by reference (not by equals/hashCode)
+                // to avoid StackOverflowError from circular references in Schema objects.
                 final Set<Schema> seenSchemas = Collections.newSetFromMap(new IdentityHashMap<>());
                 
                 // Initialize with this schema
