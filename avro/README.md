@@ -257,7 +257,7 @@ mix-and-match data-binding with streaming (see `JsonParser.readValueAs()`).
 The Avro parser includes protection against Out-Of-Memory (OOM) errors when processing untrusted Avro data that may claim to contain very large byte arrays or strings. This protection is provided through Jackson's `StreamReadConstraints`.
 
 By default, the parser validates:
-- **Byte array lengths**: Limited by `maxNumberLength` (default: typically 1000 characters for number representation, but applies to binary data size validation)
+- **Byte array lengths**: Validated using `StreamReadConstraints.maxNumberLength`. While this setting is primarily intended to limit the length of number representations in text formats, Jackson reuses it to limit the size (in bytes) of binary data arrays in binary formats. Default is typically 1000 bytes.
 - **String lengths**: Limited by `maxStringLength` (default: typically 20,000,000 characters)
 
 To customize these limits, configure the `AvroFactory`:
@@ -265,14 +265,14 @@ To customize these limits, configure the `AvroFactory`:
 ```java
 AvroFactory factory = AvroFactory.builder()
     .streamReadConstraints(StreamReadConstraints.builder()
-        .maxNumberLength(100000)      // Limit binary data to 100KB
-        .maxStringLength(10_000_000)  // Limit strings to 10MB
+        .maxNumberLength(100000)      // Limit binary data arrays to 100,000 bytes
+        .maxStringLength(10_000_000)  // Limit strings to 10 million characters
         .build())
     .build();
 AvroMapper mapper = new AvroMapper(factory);
 ```
 
-**Note for Apache Decoder users**: When using Apache Avro's native decoder (via `AvroFactory.builderWithApacheDecoder()`), string validation happens *after* memory allocation due to limitations in the Apache Avro library. For better protection against malicious large strings, use Jackson's native decoder (the default).
+**Note for Apache Decoder users**: When using Apache Avro's native decoder (via `AvroFactory.builderWithApacheDecoder()`), string length validation happens *after* memory allocation due to limitations in the Apache Avro library. While validation still occurs and will prevent further processing, the memory has already been allocated, which may still lead to OOM on extremely large strings. For better protection against malicious large strings, use Jackson's native decoder (the default), which validates *before* allocation.
 
 # Issues
 

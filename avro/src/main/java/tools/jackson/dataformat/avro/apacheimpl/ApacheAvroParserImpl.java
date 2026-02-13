@@ -309,9 +309,11 @@ public class ApacheAvroParserImpl extends AvroParserImpl
     @Override
     public void decodeString() throws IOException {
         // [3.0.4]: Note: Apache Avro's BinaryDecoder.readString()
-        // allocates memory before we can validate. For better protection against
-        // OOM, use Jackson's native Avro decoder instead of Apache's.
-        // We still validate here for consistency and to fail fast.
+        // allocates memory internally before we can validate. This creates a potential
+        // OOM vulnerability with extremely large strings. We still validate here to
+        // fail fast and prevent further processing, but the memory has already been
+        // allocated. For better OOM protection, use Jackson's native decoder (default)
+        // instead of the Apache decoder.
         _textValue = _decoder.readString();
         if (_textValue != null) {
             _streamReadConstraints.validateStringLength(_textValue.length());

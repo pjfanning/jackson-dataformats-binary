@@ -24,6 +24,10 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public class LargeBinaryAvroReadTest extends AvroTestBase
 {
+    // Test constraints: allow large strings but limit binary data
+    private static final int MAX_STRING_LENGTH_FOR_TEST = 1_000_000;  // 1MB for strings
+    private static final int MAX_BINARY_LENGTH_FOR_TEST = 100;        // 100 bytes for binary data
+
     protected final String BYTES_SCHEMA_JSON = "{\n"
             +"\"type\": \"record\",\n"
             +"\"name\": \"BytesWrapper\",\n"
@@ -50,16 +54,16 @@ public class LargeBinaryAvroReadTest extends AvroTestBase
     {
         AvroFactory nativeFactory = AvroFactory.builder()
                 .streamReadConstraints(StreamReadConstraints.builder()
-                        .maxStringLength(1000000) // Allow large strings
-                        .maxNumberLength(100)     // Limit binary to 100 bytes
+                        .maxStringLength(MAX_STRING_LENGTH_FOR_TEST)
+                        .maxNumberLength(MAX_BINARY_LENGTH_FOR_TEST)
                         .build())
                 .build();
         NATIVE_MAPPER_LIMITED = new AvroMapper(nativeFactory);
 
         AvroFactory apacheFactory = AvroFactory.builderWithApacheDecoder()
                 .streamReadConstraints(StreamReadConstraints.builder()
-                        .maxStringLength(1000000) // Allow large strings
-                        .maxNumberLength(100)     // Limit binary to 100 bytes
+                        .maxStringLength(MAX_STRING_LENGTH_FOR_TEST)
+                        .maxNumberLength(MAX_BINARY_LENGTH_FOR_TEST)
                         .build())
                 .build();
         APACHE_MAPPER_LIMITED = new AvroMapper(apacheFactory);
