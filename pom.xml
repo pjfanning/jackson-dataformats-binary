@@ -26,6 +26,7 @@
     <module>avro</module>
     <module>protobuf</module>
     <module>ion</module>
+    <module>yaml</module>
   </modules>
 
   <url>https://github.com/FasterXML/jackson-dataformats-binary</url>
