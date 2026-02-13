@@ -308,7 +308,14 @@ public class ApacheAvroParserImpl extends AvroParserImpl
 
     @Override
     public void decodeString() throws IOException {
+        // [dataformats-binary#XXX]: Note: Apache Avro's BinaryDecoder.readString()
+        // allocates memory before we can validate. For better protection against
+        // OOM, use Jackson's native Avro decoder instead of Apache's.
+        // We still validate here for consistency and to fail fast.
         _textValue = _decoder.readString();
+        if (_textValue != null) {
+            _streamReadConstraints.validateStringLength(_textValue.length());
+        }
     }
 
     @Override
@@ -328,6 +335,8 @@ public class ApacheAvroParserImpl extends AvroParserImpl
         if (len <= 0) {
             _binaryValue = NO_BYTES;
         } else {
+            // [dataformats-binary#XXX]: Validate length to prevent OOM
+            _streamReadConstraints.validateIntegerLength(len);
             byte[] b = new byte[len];
             // this is simple raw read, safe to use:
             _decoder.readFixed(b, 0, len);
@@ -345,6 +354,8 @@ public class ApacheAvroParserImpl extends AvroParserImpl
 
     @Override
     public JsonToken decodeFixed(int size) throws IOException {
+        // [dataformats-binary#XXX]: Validate size to prevent OOM
+        _streamReadConstraints.validateIntegerLength(size);
         byte[] data = new byte[size];
         _decoder.readFixed(data);
         _binaryValue = data;
