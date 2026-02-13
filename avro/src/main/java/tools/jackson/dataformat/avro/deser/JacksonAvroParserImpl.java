@@ -582,7 +582,7 @@ public class JacksonAvroParserImpl extends AvroParserImpl
             _textBuffer.resetWithEmpty();
             return;
         }
-        // [dataformats-binary#XXX]: Validate length to prevent OOM
+        // [3.0.4]: Validate length to prevent OOM
         _streamReadConstraints.validateStringLength(len);
 
         if (len > (_inputEnd - _inputPtr)) {
@@ -797,7 +797,7 @@ public class JacksonAvroParserImpl extends AvroParserImpl
             }
             _binaryValue = NO_BYTES;
         } else {
-            // [dataformats-binary#XXX]: Validate length to prevent OOM
+            // [3.0.4]: Validate length to prevent OOM
             _streamReadConstraints.validateIntegerLength(len);
             byte[] b = new byte[len];
             // this is simple raw read, safe to use:
@@ -822,7 +822,7 @@ public class JacksonAvroParserImpl extends AvroParserImpl
 
     @Override
     public JsonToken decodeFixed(int size) throws IOException {
-        // [dataformats-binary#XXX]: Validate size to prevent OOM
+        // [3.0.4]: Validate size to prevent OOM
         _streamReadConstraints.validateIntegerLength(size);
         byte[] data = new byte[size];
         _read(data, 0, size);
