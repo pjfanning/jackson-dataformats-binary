@@ -582,6 +582,8 @@ public class JacksonAvroParserImpl extends AvroParserImpl
             _textBuffer.resetWithEmpty();
             return;
         }
+        // [3.0.4]: Validate length to prevent OOM
+        _streamReadConstraints.validateStringLength(len);
 
         if (len > (_inputEnd - _inputPtr)) {
             // or if not, could we read?
@@ -795,6 +797,8 @@ public class JacksonAvroParserImpl extends AvroParserImpl
             }
             _binaryValue = NO_BYTES;
         } else {
+            // [3.0.4]: Validate length to prevent OOM
+            _streamReadConstraints.validateIntegerLength(len);
             byte[] b = new byte[len];
             // this is simple raw read, safe to use:
             _read(b, 0, len);
@@ -818,6 +822,8 @@ public class JacksonAvroParserImpl extends AvroParserImpl
 
     @Override
     public JsonToken decodeFixed(int size) throws IOException {
+        // [3.0.4]: Validate size to prevent OOM
+        _streamReadConstraints.validateIntegerLength(size);
         byte[] data = new byte[size];
         _read(data, 0, size);
         _binaryValue = data;
