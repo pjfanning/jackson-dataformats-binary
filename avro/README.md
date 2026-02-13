@@ -250,6 +250,30 @@ while (parser.nextToken() != null) {
 and similarly with `JsonGenerator`. And as with other fully-supported formats, you can even
 mix-and-match data-binding with streaming (see `JsonParser.readValueAs()`).
 
+# Security Considerations
+
+## Memory Protection
+
+The Avro parser includes protection against Out-Of-Memory (OOM) errors when processing untrusted Avro data that may claim to contain very large byte arrays or strings. This protection is provided through Jackson's `StreamReadConstraints`.
+
+By default, the parser validates:
+- **Byte array lengths**: Limited by `maxNumberLength` (default: typically 1000 characters for number representation, but applies to binary data size validation)
+- **String lengths**: Limited by `maxStringLength` (default: typically 20,000,000 characters)
+
+To customize these limits, configure the `AvroFactory`:
+
+```java
+AvroFactory factory = AvroFactory.builder()
+    .streamReadConstraints(StreamReadConstraints.builder()
+        .maxNumberLength(100000)      // Limit binary data to 100KB
+        .maxStringLength(10_000_000)  // Limit strings to 10MB
+        .build())
+    .build();
+AvroMapper mapper = new AvroMapper(factory);
+```
+
+**Note for Apache Decoder users**: When using Apache Avro's native decoder (via `AvroFactory.builderWithApacheDecoder()`), string validation happens *after* memory allocation due to limitations in the Apache Avro library. For better protection against malicious large strings, use Jackson's native decoder (the default).
+
 # Issues
 
 Currently, following things have not been thoroughly tested and may cause problems:

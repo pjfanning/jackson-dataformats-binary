@@ -34,6 +34,8 @@ implementations)
 
 #640: (cbor) CBOR throws ArrayIndexOutOfBoundsException with long ASCII text
  (reported, fix contributed by Manuel S)
+- (avro) Add memory protection to prevent OOM when decoding large byte arrays
+  and strings by validating sizes against `StreamReadConstraints` before allocation
 
 3.0.3 (28-Nov-2025)
 
